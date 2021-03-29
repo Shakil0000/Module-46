@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+     <h1>Look I have a mongo Database.</h1>
+     <form action="/addProducts" method="POST" >
+      <input type="text" placeholder="Name" name="name">
+      <input type="text" placeholder="Price" name="price">
+      <input type="text" placeholder="Quantity" name="quantity">
+      <button type="submit">Add Products</button>
+    </form>
+    <div id="product">
+ 
+    </div>
+    <div id="update"></div>
+   <script>
+       fetch('/products')
+       .then(result => result.json())
+       .then(products => {
+           const container = document.getElementById('product');
+           products.forEach(pd => {
+            const p = document.createElement('p');
+            p.innerHTML = `Name: ${pd.name} , Price: ${pd.price} , Quantity: ${pd.quantity} 
+            <button onclick="showDetails('${pd._id}')" >Update</button>
+            <button onclick="deleteProduct(event,'${pd._id}')" >Delete</button>`;
+            container.appendChild(p);
+           });
+       })
+       function showDetails(id){
+           fetch(`/product/${id}`)
+           .then(result => result.json())
+           .then(data => {
+               const update = document.getElementById('update');
+               update.innerHTML = `
+               <h1>Update: ${data._id}</h1> <br>
+               Price:<input type="text" value="${data.price}" id="price"> <br>
+               Quantity:<input type="text" value="${data.quantity}" id="quantity"><br>
+               <button onclick="updateProduct('${data._id}')">Submit</button>
+               `;
+           })
+       }
+
+       function updateProduct(id){
+           const price = document.getElementById('price').value;
+           const quantity = document.getElementById('quantity').value;
+           const product = {id,price,quantity};
+           fetch(`/update/${id}`,{
+               method:'PATCH',
+               headers:{'Content-Type': 'application/json'},
+               body: JSON.stringify(product)
+             })
+             .then(res => res.json())
+             .then(data => {
+                 console.log('updated');
+                 if (data) {
+                    location.reload();
+                 }
+             })
+       }
+
+       function deleteProduct(event,id){
+            fetch(`/delete/${id}`,{
+                method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(result => {
+                console.log("Deleted successfully ");
+                if (result) {
+                    event.target.parentNode.style.display = 'none';
+                }
+            })
+        }
+   </script>
+</body>
+</html>
